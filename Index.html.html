@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuestionario ADIF Pro + Simulador Oficial</title>
+<style>
+  :root {
+    --bg: #0f172a; --card: #ffffff; --accent: #166534; --accent2: #15803d;
+    --wrong: #b91c1c; --text: #1e293b; --muted: #64748b; --border: #e2e8f0;
+    --input-bg: #f8fafc; --flag: #d97706; --badge-bg: #dcfce7;
+  }
+  [data-theme="dark"] {
+    --bg: #0b0f19; --card: #1e293b; --accent: #22c55e; --accent2: #16a34a;
+    --wrong: #ef4444; --text: #f8fafc; --muted: #94a3b8; --border: #334155;
+    --input-bg: #0f172a; --flag: #f59e0b; --badge-bg: rgba(34, 197, 94, 0.15);
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background: var(--bg);
+    min-height:100vh; margin:0; padding:30px 20px; color:var(--text);
+    transition: background 0.3s, color 0.3s;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+  
+  header{color:#fff; text-align:center; margin-bottom:28px;}
+  .header-top {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  header h1{font-size:1.5em;margin:0; font-weight: 700; letter-spacing: -0.5px;}
+  header p{margin:4px 0 0; color:var(--muted); font-size:0.92em;}
+  
+  .btn-icon{
+    background: var(--card); color:var(--text); border:1px solid var(--border);
+    border-radius:10px; padding:8px 14px; font-size:0.85em; cursor:pointer;
+    font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  .btn-icon:hover{opacity: 0.9;}
+
+  .card{
+    background:var(--card); border-radius:20px; padding:32px;
+    box-shadow:0 12px 35px rgba(0,0,0,0.2); margin-bottom:20px;
+    border: 1px solid var(--border);
+  }
+  
+  .setup label{display:block; font-weight:600; margin:20px 0 8px; font-size:0.98em;}
+  .setup label:first-child { margin-top: 0; }
+  
+  .setup select, .setup input[type=text]{
+    width:100%; padding:12px 14px; border-radius:10px; border:1px solid var(--border); font-size:1em;
+    background: var(--input-bg); color: var(--text);
+  }
+  
+  .radiorow{display:flex; align-items:flex-start; gap:12px; margin-top:12px; font-size:0.96em; line-height: 1.4; cursor: pointer;}
+  .radiorow input{margin-top:3px; transform: scale(1.1); accent-color: var(--accent);}
+  
+  .checkrow{display:flex; align-items:center; gap:10px; margin-top:12px; font-size:0.96em;}
+  .checkrow input{transform: scale(1.1); accent-color: var(--accent);}
+  
+  fieldset{border:1px solid var(--border); border-radius:12px; padding:16px 18px; margin-top:16px; background: var(--input-bg);}
+  legend{font-weight:600; font-size:0.92em; padding:0 8px; color:var(--muted);}
+  
+  button{
+    background:var(--accent); color:#fff; border:none; border-radius:12px;
+    padding:14px 20px; font-size:1.02em; font-weight:600; cursor:pointer; width:100%;
+    margin-top:20px; transition:background .15s, transform 0.1s;
+    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.2);
+  }
+  button:hover{background:var(--accent2); transform: translateY(-1px);}
+  button.secondary{background:#64748b; box-shadow: none;}
+  button.warning{background:var(--flag); box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);}
+  button:disabled{background:#94a3b8; cursor:not-allowed; transform: none;}
+  
+  .quiz-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .timer { font-weight: bold; color: var(--wrong); font-size: 0.95em; background: rgba(239,68,68,0.1); padding: 4px 10px; border-radius: 6px; }
+  .progress{color:var(--muted); font-size:0.88em;}
+  
+  .section-tag{
+    display:inline-block; background: var(--badge-bg); color:var(--accent); font-size:0.78em;
+    font-weight:700; padding:4px 12px; border-radius:999px; margin-bottom:14px; letter-spacing:.3px;
+  }
+  .qtext{font-size:1.1em; font-weight:600; line-height:1.5; margin-bottom:20px; white-space:pre-line;}
+  
+  .option{
+    display:block; width:100%; text-align:left; background:var(--input-bg); border:2px solid var(--border);
+    border-radius:12px; padding:14px 16px; margin-bottom:12px; cursor:pointer; font-size:1em;
+    color:var(--text); transition:.12s;
+  }
+  .option:hover{border-color:var(--muted); background: rgba(0,0,0,0.02);}
+  .option.selected{border-color:var(--accent); background:rgba(34,197,94,0.08); font-weight: 600;}
+  .option.correct{border-color:var(--accent); background:rgba(34,197,94,0.2); font-weight:700;}
+  .option.incorrect{border-color:var(--wrong); background:rgba(239,68,68,0.15);}
+  
+  .feedback{margin-top:16px; padding:16px; border-radius:12px; font-size:0.95em; line-height:1.5;}
+  .feedback.ok{background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); color:var(--accent);}
+  .feedback.bad{background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:var(--wrong);}
+  .feedback-title{font-weight:700; margin-bottom:6px; font-size: 1.02em;}
+  .hidden{display:none;}
+  
+  .score-big{font-size:2.8em; font-weight:800; text-align:center; margin:10px 0; color:var(--accent);}
+  .score-sub{text-align:center; color:var(--muted); margin-bottom:16px; font-size: 1.05em;}
+  .verdict-box { text-align: center; font-size: 1.2em; font-weight: bold; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
+  .verdict-apto { background: rgba(34,197,94,0.15); color: var(--accent); border: 1px solid var(--accent); }
+  .verdict-noapto { background: rgba(239,68,68,0.15); color: var(--wrong); border: 1px solid var(--wrong); }
+
+  .breakdown{margin-top:20px; background: var(--input-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border);}
+  .breakdown-row{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:0.95em;}
+  .breakdown-row:last-child { border-bottom: none; }
+  
+  .stats-card { background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-top: 15px; }
+  .stats-title { font-weight: bold; margin-bottom: 10px; font-size: 0.95em; color: var(--muted); }
+  .history-row { display: flex; justify-content: space-between; font-size: 0.9em; padding: 6px 0; border-bottom: 1px dashed var(--border); }
+  .history-row:last-child { border-bottom: none; }
+
+  .review-item{border-bottom:1px solid var(--border); padding:16px 0;}
+  .review-item:last-child{border-bottom:none;}
+  .review-q{font-weight:600; margin-bottom:8px;}
+  .review-your{font-size:0.92em; margin-bottom: 4px;}
+  .review-your.bad{color:var(--wrong);}
+  .review-your.ok{color:var(--accent);}
+  .review-correct{font-size:0.92em; color:var(--accent); margin-bottom: 4px;}
+  .review-justification{font-size:0.88em; color:var(--muted); background:var(--input-bg); padding:10px 14px; border-radius:8px; margin-top:8px; border-left:3px solid var(--accent); line-height: 1.4;}
+  
+  .flagged-badge { background: var(--flag); color: white; padding: 3px 8px; font-size: 0.78em; border-radius: 6px; margin-left: 8px; font-weight: 600;}
+  footer{text-align:center; color:var(--muted); font-size:0.82em; margin-top:20px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="header-top">
+      <button class="btn-icon hidden" id="homeBtnTop" onclick="confirmRestart()">⟵ Inicio</button>
+      <div style="flex:1;"></div>
+      <button class="btn-icon" onclick="toggleTheme()" id="themeBtn">☀ Tema</button>
+    </div>
+    <h1>Cuestionario ADIF Pro</h1>
+    <p>Simulador Oficial, Estadísticas y Justificaciones</p>
+  </header>
+
+  <!-- PANTALLA DE CONFIGURACIÓN -->
+  <div class="card setup" id="setupScreen">
+    <label>¿Quién va a hacer el cuestionario?</label>
+    <input type="text" id="playerName" placeholder="Escribe tu nombre">
+
+    <label>Modo de operación</label>
+    <div class="radiorow"><input type="radio" name="modeType" id="modePractice" value="practice" checked><label for="modePractice" style="font-weight:400; cursor:pointer;"><strong>Modo Práctica / Estudio:</strong> Feedback inmediato y explicaciones al momento.</label></div>
+    <div class="radiorow"><input type="radio" name="modeType" id="modeExam" value="exam"><label for="modeExam" style="font-weight:400; cursor:pointer;"><strong>Modo Simulacro Oficial:</strong> Examen cronometrado (45 min), sin ver respuestas hasta el final y nota de corte (Apto/No Apto).</label></div>
+
+    <label>¿A qué convocatoria/perfil te presentas?</label>
+    <div class="radiorow"><input type="radio" name="track" id="trackInformatica" value="informatica" checked onchange="onTrackChange()"><label for="trackInformatica" style="font-weight:400; cursor:pointer;">PNI25/02 · Mando Intermedio y Cuadro — Ingeniería en Informática</label></div>
+    <div class="radiorow"><input type="radio" name="track" id="trackOperativo" value="operativo" onchange="onTrackChange()"><label for="trackOperativo" style="font-weight:400; cursor:pointer;">PNI25/01 · Personal Operativo — Factor de Circulación de Entrada</label></div>
+    <div class="radiorow"><input type="radio" name="track" id="trackTodo" value="todo" onchange="onTrackChange()"><label for="trackTodo" style="font-weight:400; cursor:pointer;">Ver todos los bloques disponibles</label></div>
+
+    <label>¿Qué bloques quieres incluir?</label>
+    <fieldset>
+      <legend>Prueba Selectiva Común</legend>
+      <div class="checkrow"><input type="checkbox" id="chkPsico" checked><label for="chkPsico" style="margin:0;font-weight:400; cursor:pointer;">Psicométrico</label></div>
+      <div class="checkrow"><input type="checkbox" id="chkIngles" checked><label for="chkIngles" style="margin:0;font-weight:400; cursor:pointer;" id="lblIngles">Inglés</label></div>
+      <div class="checkrow"><input type="checkbox" id="chkGeneral" checked><label for="chkGeneral" style="margin:0;font-weight:400; cursor:pointer;" id="lblGeneral">Conocimiento General</label></div>
+    </fieldset>
+
+    <fieldset id="fsEspecifico">
+      <legend>Conocimiento Específico</legend>
+      <div class="checkrow"><input type="checkbox" id="chkEspTecnico" checked><label for="chkEspTecnico" style="margin:0;font-weight:400; cursor:pointer;">Ingeniería Informática y técnicos</label></div>
+      <div class="checkrow"><input type="checkbox" id="chkEspFactor" checked><label for="chkEspFactor" style="margin:0;font-weight:400; cursor:pointer;">Factor de Circulación de Entrada</label></div>
+    </fieldset>
+
+    <label>Orden de las preguntas</label>
+    <select id="shuffleMode">
+      <option value="random">Aleatorio (recomendado)</option>
+      <option value="fixed">Orden original</option>
+    </select>
+
+    <button onclick="startQuiz()">Empezar cuestionario</button>
+    <button class="warning hidden" id="btnWrongMode" onclick="startWrongQuiz()">⚡ Repasar mis fallos guardados (<span id="wrongCount">0</span>)</button>
+
+    <!-- PANEL DE ESTADÍSTICAS HISTÓRICAS -->
+    <div class="stats-card">
+      <div class="stats-title">📊 Tus Estadísticas e Historial Reciente</div>
+      <div id="statsSummary" style="font-size: 0.9em; margin-bottom: 8px;">Aún no hay simulacros completados.</div>
+      <div id="statsHistoryList"></div>
+    </div>
+  </div>
+
+  <!-- PANTALLA DE PREGUNTA -->
+  <div class="card hidden" id="quizScreen">
+    <div class="quiz-top-bar">
+      <span class="progress" id="progressText"></span>
+      <span class="timer hidden" id="timerDisplay">⏱ 45:00</span>
+    </div>
+    <span class="section-tag" id="sectionTag"></span>
+    <div class="qtext" id="qtext"></div>
+    <div id="optionsContainer"></div>
+    
+    <div style="display: flex; gap: 10px; margin-top: 18px;">
+      <button class="secondary" style="margin-top:0; flex:1;" id="flagBtn" onclick="toggleFlag()">⭐ Marcar como dudosa</button>
+    </div>
+
+    <div class="feedback hidden" id="feedback"></div>
+    <button id="nextBtn" class="hidden" onclick="nextQuestion()">Siguiente pregunta</button>
+  </div>
+
+  <!-- PANTALLA DE RESULTADOS -->
+  <div class="card hidden" id="resultScreen">
+    <div class="score-sub" id="resultName"></div>
+    <div id="verdictContainer"></div>
+    <div class="score-big" id="scoreBig"></div>
+    <div class="score-sub" id="scoreSub"></div>
+    <div class="breakdown" id="breakdown"></div>
+    <button onclick="showReview()">Ver corrección detallada con justificaciones</button>
+    <button class="secondary" onclick="restart()">Volver al inicio</button>
+  </div>
+
+  <!-- PANTALLA DE REVISIÓN -->
+  <div class="card hidden" id="reviewScreen">
+    <h3 style="margin-top:0;">Corrección detallada y justificada</h3>
+    <div id="reviewList"></div>
+    <button class="secondary" onclick="backToResults()">Volver al resultado</button>
+    <button class="secondary" onclick="restart()">Volver al inicio</button>
+  </div>
+
+  <footer>Cuestionario profesional ADIF · Simulador con IA educativa y analítica local.</footer>
+</div>
+
+<script>
+const BANK = {
+  psicometrico: [
+    {q:"1. 4, 7, 13, 25, 49, ?", o:["73","85","97","101"], c:2, j:"Sucesión basada en doblar la diferencia anterior más 1 (diferencias: 3, 6, 12, 24, por tanto la siguiente diferencia es 48. 49 + 48 = 97)."},
+    {q:"2. 3, 5, 10, 12, 24, 26, ?", o:["48","50","52","54"], c:1, j:"Patrón alterno de operaciones: suma 2 (+2) y multiplica por 2 (×2). (26 + 2 = 50)."},
+    {q:"3. 81, 27, 9, 3, ?", o:["0","1","2","6"], c:1, j:"Progresión geométrica decreciente dividiendo entre 3 sucesivamente (3 ÷ 3 = 1)."},
+    {q:"4. Si TODOS los A son B y NINGÚN B es C, ¿qué conclusión es necesariamente cierta?", o:["Algunos A son C","Ningún A es C","Todos los C son A","Algunos B son C"], c:1, j:"Silogismo categórico válido: si todo elemento de A pertenece a B, y B y C son totalmente disjuntos, ningún elemento de A puede pertenecer a C."},
+    {q:"5. Completa: AZ, BY, CX, DW, ?", o:["EV","EU","FV","EX"], c:0, j:"Serie alfabética doble en sentido opuesto: la primera letra avanza y la segunda retrocede."},
+    {q:"6. Un tren recorre 180 km en 2 h 15 min. ¿Cuál es su velocidad media?", o:["72 km/h","80 km/h","84 km/h","90 km/h"], c:1, j:"2 horas y 15 minutos equivalen a 2,25 horas. Velocidad = 180 km ÷ 2,25 h = 80 km/h."},
+    {q:"7. ¿Qué número falta? 2, 6, 12, 20, 30, ?", o:["40","42","44","46"], c:1, j:"Diferencias sucesivas crecientes en progresión aritmética de números pares (+4, +6, +8, +10, por tanto +12). 30 + 12 = 42."},
+    {q:"8. En una caja hay 5 bolas rojas, 3 azules y 2 verdes. ¿Qué probabilidad hay de sacar una azul?", o:["20%","25%","30%","35%"], c:2, j:"Casos favorables (3 azules) entre casos totales (10). 3/10 = 30%."},
+    {q:"9. Un trabajador realiza una tarea en 12 días. Otro tarda 18 días. Trabajando juntos, ¿cuánto tardan aproximadamente?", o:["6,0 días","7,2 días","8,0 días","9,0 días"], c:1, j:"Ritmos combinados: (1/12) + (1/18) = 5/36. Inverso: 36/5 = 7,2 días."},
+    {q:"10. Si 5 → 27, 7 → 51 y 9 → 83, siguiendo la misma regla, 11 → ?", o:["111","115","123","131"], c:2, j:"La regla lógica corresponde a la función n² + 2. Para n = 11: 11² + 2 = 123."},
+    {q:"11. Un código cambia cada letra por la siguiente del alfabeto. Si TREN se convierte en USFO, ¿cómo se convierte ADIF?", o:["BEJG","BEHF","BDJG","AEJG"], c:0, j:"Sustitución directa desplazando una posición adelante cada letra: A->B, D->E, I->J, F->G (BEJG)."},
+    {q:"12. ¿Cuál no pertenece al grupo? 16, 25, 36, 48", o:["16","25","36","48"], c:3, j:"16, 25 y 36 son cuadrados perfectos exactos; 48 no lo es."},
+    {q:"13. Una cantidad aumenta un 20% y después disminuye un 20%. Respecto al valor inicial queda:", o:["Igual","Un 4% menor","Un 4% mayor","Un 2% menor"], c:1, j:"Cálculo de factores: 1,20 × 0,80 = 0,96, lo que representa una disminución neta del 4%."},
+    {q:"14. Secuencia: 2A, 4C, 8F, 16J, ?", o:["24N","32O","32P","30O"], c:1, j:"Números multiplican por 2 (32). Letras avanzan sumando incremento progresivo."},
+    {q:"15. Todos los técnicos conocen X. Algunos que conocen X también conocen Y. ¿Qué afirmación es necesariamente cierta?", o:["Todos los técnicos conocen Y","Algunos técnicos conocen Y","Ningún técnico conoce Y","Todos los que conocen Y son técnicos"], c:1, j:"Deducción lógica: al haber intersección, al menos algunos técnicos conocen Y."},
+    {q:"16. Una serie alterna ×2−1 y ×3: 4, 7, 21, 41, 123, ?", o:["245","246","367","369"], c:0, j:"Patrón operativo alterno: (123×2)-1 = 245."},
+    {q:"17. Ordena de menor a mayor: 0,375; 3/8; 37%; 0,4. ¿Cuál es el orden correcto?", o:["37%, 0,375, 3/8, 0,4","0,375, 37%, 3/8, 0,4","37%, 3/8, 0,375, 0,4","0,375, 3/8, 37%, 0,4"], c:0, j:"Equivalencias: 37%=0,37; 0,375=3/8; 0,4=40%."},
+    {q:"18. Si hoy es martes, ¿qué día será dentro de 100 días?", o:["Jueves","Viernes","Sábado","Domingo"], c:0, j:"100 módulo 7 = 2 días de resto. Martes + 2 días = Jueves."},
+    {q:"19. 7, 11, 19, 35, 67, ?", o:["99","123","131","135"], c:2, j:"Diferencias crecientes potencias de 2 (4, 8, 16, 32, 64). 67 + 64 = 131."},
+    {q:"20. 2, 3, 6, 18, 72, ?", o:["144","216","360","432"], c:2, j:"Multiplicación progresiva por factores crecientes (×5). 72 × 5 = 360."},
+    {q:"21. 5, 9, 18, 34, 59, ?", o:["91","93","95","97"], c:2, j:"Diferencias sucesivas cuadrados (+3², +4², +5², +6²). 59 + 36 = 95."},
+    {q:"22. Si ningún A es B y algunos C son A, ¿qué es necesariamente cierto?", o:["Algunos C no son B","Todos C son B","Algunos B son C","Ningún C es A"], c:0, j:"Porción de C que es A queda excluida de B."},
+    {q:"23. Completa: BDF, EGI, HJL, ?", o:["KMO","KNP","LMO","KNP"], c:0, j:"Avance consecutivo de cada letra en +3 posiciones."},
+    {q:"24. Una máquina produce 240 piezas en 8 horas. Manteniendo el ritmo, ¿cuántas produce en 13 horas?", o:["360","380","390","400"], c:2, j:"Regla de tres directa: (240 ÷ 8) × 13 = 390."},
+    {q:"25. Un precio de 850 € recibe primero un descuento del 10% y después otro del 5%. Precio final:", o:["726,75 €","727,50 €","731,25 €","735,00 €"], c:0, j:"Descuentos encadenados: 850 × 0,90 × 0,95 = 726,75 €."},
+    {q:"26. En una tabla, A>B, B>C y D>A. ¿Cuál es necesariamente el mayor?", o:["A","B","C","D"], c:3, j:"Cadena: D > A > B > C."},
+    {q:"27. Serie: 1, 4, 10, 22, 46, ?", o:["90","92","94","96"], c:2, j:"Regla: (n×2)+2. (46×2)+2 = 94."},
+    {q:"28. Un depósito está lleno al 60%. Se añaden 24 litros y pasa al 80%. Capacidad:", o:["100 L","110 L","120 L","140 L"], c:2, j:"El 20% son 24 litros. 24 ÷ 0,20 = 120 litros."},
+    {q:"29. Si 4 trabajadores hacen una tarea en 15 días, ¿cuántos días tardan 6 al mismo ritmo?", o:["8","10","12","14"], c:1, j:"Inversa: (4 × 15) ÷ 6 = 10 días."},
+    {q:"30. Encuentra el intruso: 3, 5, 11, 17, 23, 29, 35", o:["3","11","17","35"], c:3, j:"35 es número compuesto (divisible por 5 y 7); los demás son primos."},
+    {q:"31. Un número es 40% de otro. Si la diferencia es 72, ¿cuál es el mayor?", o:["100","120","180","200"], c:1, j:"y - 0,40y = 0,60y = 72 -> y = 120."},
+    {q:"32. Secuencia de letras: C, F, J, O, ?", o:["T","U","V","W"], c:1, j:"Incremento posicional: +3, +4, +5, +6 (O->U)."},
+    {q:"33. Dos trenes salen simultáneamente hacia el otro desde puntos separados 420 km, a 90 y 120 km/h. ¿Cuándo se encuentran?", o:["1 h 30 min","2 h","2 h 20 min","2 h 30 min"], c:1, j:"Velocidad conjunta: 210 km/h. Tiempo = 420 ÷ 210 = 2 horas."},
+    {q:"34. Si X:Y=3:5 y Y:Z=10:7, entonces X:Z es:", o:["3:7","6:7","6:5","10:7"], c:1, j:"Amplificando X:Y a 6:10, resulta X:Z = 6:7."},
+    {q:"35. Un reloj se adelanta 4 minutos cada hora. Si a las 08:00 está correcto, ¿qué marcará a las 14:00?", o:["14:20","14:24","14:30","14:40"], c:1, j:"6 horas × 4 min = 24 minutos de adelanto (14:24)."},
+    {q:"36. Si una afirmación es falsa, ¿cuál de estas es necesariamente verdadera? 'Todos los A son B'.", o:["Ningún A es B","Al menos un A no es B","Todos los B son A","Algunos B son A"], c:1, j:"Negación universal afirmativa = particular negativa."},
+    {q:"37. 6, 10, 18, 34, 66, ?", o:["98","114","130","132"], c:2, j:"Incremento duplicado (+64). 66 + 64 = 130."},
+    {q:"38. 3, 8, 18, 38, 78, ?", o:["118","138","158","160"], c:2, j:"(78 × 2) + 2 = 158."},
+    {q:"39. 12, 15, 21, 33, 57, ?", o:["81","93","105","117"], c:2, j:"Diferencias potencias de 2 (+24 -> +48). 57 + 48 = 105."},
+    {q:"40. Si todos los M son N, algunos N son P y ningún P es Q, ¿qué NO puede ser cierto?", o:["Algún M es P","Algún N es P","Algún P es Q","Algún M no es P"], c:2, j:"Contradicción con la premisa inicial 'ningún P es Q'."},
+    {q:"41. Completa: ACE, BDF, DHL, ?", o:["EJM","EIK","EJN","FJN"], c:0, j:"Patrón alfabético estricto de desplazamiento consecutivo."},
+    {q:"42. Un capital aumenta 12% y después 10%. Aumento total:", o:["20,0%","21,2%","22,0%","23,2%"], c:3, j:"Compuesto: 1,12 × 1,10 = 1,232 (23,2%)."},
+    {q:"43. Una pieza tarda 48 s en procesarse. ¿Cuántas piezas completas se procesan en 12 minutos?", o:["12","15","16","18"], c:1, j:"720 segundos ÷ 48 s = 15 piezas."},
+    {q:"44. En una competición, A termina antes que B; C después de D pero antes que B. ¿Cuál puede ser el orden?", o:["B-A-D-C","A-D-C-B","D-B-C-A","C-D-A-B"], c:1, j:"Cumple estrictamente las restricciones."},
+    {q:"45. Serie: 2, 5, 11, 23, 47, ?", o:["93","94","95","97"], c:2, j:"(47 × 2) + 1 = 95."},
+    {q:"46. Si 3/5 de un número es 42, el número es:", o:["60","65","70","75"], c:2, j:"(42 × 5) ÷ 3 = 70."},
+    {q:"47. Un equipo tiene 18 personas. 2/3 son técnicos. De los técnicos, 1/2 tiene certificación. ¿Cuántos técnicos certificados?", o:["4","6","8","9"], c:1, j:"18 × (2/3) = 12; 12 × (1/2) = 6."},
+    {q:"48. Una secuencia sigue: 2A, 6D, 12H, 20M, 30S, ?. ¿Cuál es la siguiente?", o:["42Z","42Y","40Z","42X"], c:0, j:"Números con diferencias crecientes y letras con saltos proporcionales."},
+    {q:"49. Si P implica Q y Q implica R, entonces:", o:["R implica P","P implica R","P y R son equivalentes","Q no implica R"], c:1, j:"Silogismo hipotético transitivo."},
+    {q:"50. Un tren de 240 m atraviesa un túnel de 360 m a 72 km/h. Tiempo desde que entra la locomotora hasta que sale completamente:", o:["20 s","25 s","30 s","35 s"], c:2, j:"Espacio = 240 + 360 = 600 m. Velocidad = 20 m/s. Tiempo = 30 s."},
+    {q:"51. Si A:B=4:7 y B:C=14:9, entonces A:C=", o:["4:9","8:9","7:9","8:7"], c:1, j:"Amplificando A:B a 8:14, resulta A:C = 8:9."},
+    {q:"52. Una tarea tiene 5 fases iguales. Se completa el 40% de la primera mitad del trabajo. ¿Qué porcentaje total se ha completado?", o:["8%","10%","20%","40%"], c:2, j:"0,40 × 50% = 20% del total."},
+    {q:"53. De cuatro personas, Luis es mayor que Ana; Ana mayor que Marta; Marta mayor que Eva. ¿Cuál es necesariamente la menor?", o:["Luis","Ana","Marta","Eva"], c:3, j:"Orden decreciente: Luis > Ana > Marta > Eva."}
+  ],
+  ingles_02: [
+    {q:"19. We need to book a ______ for our holiday by the sea.", o:["cottage","tent","mansion","palace"], c:0, j:"'Cottage' (casa costera o rural) es el alojamiento vacacional adecuado para la costa."},
+    {q:"20. She ______ to the party if she had known about it.", o:["came","would have come","comes","will come"], c:1, j:"Tercer condicional ('had known' / 'would have come')."},
+    {q:"21. I'm afraid I've ______ my keys. I can't find them anywhere.", o:["dropped","left","missed","lost"], c:3, j:"Extravío absoluto de las llaves ('lost')."},
+    {q:"22. There's ______ milk in the fridge.", o:["few","a few","some","many"], c:2, j:"'Some' se emplea en oraciones afirmativas con sustantivos incontables ('milk')."},
+    {q:"23. My laptop isn't working properly. I'll take it to the ______.", o:["mechanic","doctor","technician","painter"], c:2, j:"Reparación informática a cargo de un 'technician'."},
+    {q:"24. The train was ______, so we arrived late.", o:["early","crowded","delayed","quick"], c:2, j:"El retraso ('delayed') justifica la llegada tardía."},
+    {q:"25. What does this sign mean?\n\"Please use other door.\"", o:["Don't use this door, use another one.","This is the only entrance.","You must open both doors.","Only employees can use this door."], c:0, j:"Instrucción de usar una puerta alternativa."},
+    {q:"26. She has a very ______ attitude. She never gives up.", o:["passive","negative","determined","quiet"], c:2, j:"Actitud firme y decidida ('determined')."},
+    {q:"27. They reached an _____ after a long discussion.", o:["agree","agreement","agreeing","agreeable"], c:1, j:"Acuerdo sustantivo ('agreement')."},
+    {q:"28. The teacher gave us a ______ to complete before Friday.", o:["task","chore","duty","role"], c:0, j:"Tareas académicas o escolares ('task')."},
+    {q:"29. If I ______ enough money, I'll go on holiday this summer.", o:["will save","saved","save","had saved"], c:2, j:"Primer condicional (presente simple 'save' en la subordinada)."},
+    {q:"30. That deal sounds suspicious. It could be a ______.", o:["solution","scam","offer","sale"], c:1, j:"Trato sospechoso asociado a estafa ('scam')."},
+    {q:"31. What does this notice mean?\n\"No entry except staff.\"", o:["Only staff members are allowed to go in.","Staff cannot go inside.","Visitors should go in.","Everyone can enter freely."], c:0, j:"Acceso exclusivo para empleados."},
+    {q:"32. What does this sentence mean?\n\"He's not as tall as his brother.\"", o:["He's the taller one.","His brother is shorter.","He's not very tall.","His brother is taller."], c:3, j:"Su hermano es más alto."},
+    {q:"33. Seldom ______ such a brilliant performance.", o:["I see","do I see","I saw","did I saw"], c:1, j:"Inversión gramatical tras adverbio negativo inicial."},
+    {q:"34. What does the speaker imply?\n\"He behaves as though he owns the place.\"", o:["He wants to buy it.","He actually owns the place.","He works there.","He pretends to be the boss."], c:3, j:"Fingir autoridad o ser el jefe ('pretends to be the boss')."},
+    {q:"35. What does this sentence suggest?\n\"We'd better leave now, or we'll miss the train.\"", o:["It's a good idea to leave now.","We can leave later.","We've already missed the train.","We should leave."], c:3, j:"Recomendación de acción aconsejable ('We should leave')."},
+    {q:"36. The company wants to ______ more staff before summer.", o:["send","fired","employ","offer"], c:2, j:"Verbo de contratación ('employ')."}
+  ],
+  general_02: [
+    {q:"37. Según la Declaración sobre la Red 2026 de Adif, en las infraestructuras ferroviarias consideradas transfronterizas, reglamentariamente se podrán establecer excepciones a la normativa aplicable al resto de la RFIG sobre:", o:["No se admiten excepciones normativas al tráfico ferroviario.","Únicamente la referida a la exención lingüística siempre que la empresa ferroviaria lo solicite a la Dirección de Tráfico del administrador de infraestructuras.","Se podrán establecer excepciones reglamentariamente sobre el personal ferroviario, el material rodante, la circulación ferroviaria o los certificados de seguridad, que serán de aplicación en la sección fronteriza para las circulaciones con origen o destino la estación de la RFIG que delimita la sección fronteriza.","Se podrán establecer excepciones reglamentariamente sobre el personal ferroviario, el material rodante, la circulación ferroviaria o los certificados de seguridad, que serán de aplicación en toda la RFIG a la empresa ferroviaria extranjera."], c:2, j:"Criterio normativo de la Declaración sobre la Red para tramos transfronterizos."},
+    {q:"38. Según la Ley 4/2023, de 28 de febrero, respecto al procedimiento de rectificación registral de la mención relativa al sexo, la persona encargada del registro Civil deberá:", o:["Citar a la persona legitimada para que comparezca de nuevo y ratifique su solicitud en el plazo máximo de 1 mes desde la comparecencia inicial.","Dictar resolución sobre la rectificación registral solicitada dentro del plazo máximo de un mes a contar desde la fecha de la primera comparecencia.","Informar en la comparecencia inicial a la persona solicitante de las consecuencias jurídicas de la rectificación pretendida.","De tratarse de personas menores de dieciocho años y mayores de dieciséis, todos los intervinientes tendrán en consideración en todo momento el interés superior de la persona menor."], c:2, j:"Obligación de información jurídica en la comparecencia inicial del procedimiento registral."},
+    {q:"39. ¿Cuáles de los siguientes contratos quedan sometidos a la Ley 9/2017 de Contratos del Sector Público?", o:["Los contratos onerosos, cualquiera que sea su naturaleza jurídica, que celebren las entidades enumeradas en el art. 3 de la Ley 9/2017, entendidos como onerosos aquellos en los que el contratista obtenga algún tipo de beneficio económico, directa o indirectamente.","Aquellos, cualquiera que sea su naturaleza jurídica, que celebren las entidades del art. 3, salvo que el contratista obtenga algún beneficio económico, directa o indirectamente.","Aquellos contratos administrativos que celebren las entidades del art. 3, salvo que el contratista obtenga algún beneficio económico, directa o indirectamente.","Los contratos onerosos de carácter exclusivamente administrativo, que celebren las entidades del art. 3, entendidos como onerosos aquellos sometidos a regulación armonizada."], c:0, j:"Ámbito objetivo y subjetivo de la LCSP (art. 2 y 3)."},
+    {q:"40. Según el artículo 19 de la Ley 31/1995, ¿cuándo debe repetirse la formación en prevención de riesgos laborales?", o:["Cada seis meses.","Cuando sea necesario por cambios en las funciones o equipos o se introduzcan nuevas tecnologías.","Sólo cuando lo solicite el trabajador.","Cada vez que cambie la dirección de la empresa."], c:1, j:"Actualización formativa ante modificaciones sustanciales de puestos o equipos (LPRL)."},
+    {q:"41. Señale la opción INCORRECTA: Según la Ley Orgánica 3/2007, de 22 de marzo, serán criterios generales de actuación de los Poderes Públicos:", o:["La participación equilibrada de mujeres y hombres en las candidaturas electorales y en la toma de decisiones.","La colaboración y cooperación entre las distintas Administraciones públicas en la aplicación del principio de igualdad de trato y de oportunidades.","El compromiso con la efectividad del derecho constitucional de igualdad entre mujeres y hombres.","La implantación de un lenguaje sexista en el ámbito administrativo y su fomento en la totalidad de las relaciones sociales, culturales y artísticas."], c:3, j:"La ley promueve la erradicación del lenguaje sexista, no su fomento."},
+    {q:"42. Según el Real Decreto 311/2022, ¿qué regula el Real Decreto 311/2022?", o:["El RGPD.","El Esquema Nacional de Seguridad.","La protección de datos personales.","La Ley de Ciberseguridad."], c:1, j:"Regulación actualizada del Esquema Nacional de Seguridad (ENS)."},
+    {q:"43. Según lo establecido en la LO 3/2018, de 5 de diciembre, ¿quién está obligado a mantener la confidencialidad de los datos personales?", o:["Los responsables y encargados del tratamiento, así como todas las personas que intervengan en cualquier fase.","Solo tiene deber de confidencialidad el responsable.","Solo tiene deber de confidencialidad el encargado.","Solo tienen deber de confidencialidad el encargado y el responsable."], c:0, j:"Alcance subjetivo ampliado del secreto de datos (LOPDGDD)."},
+    {q:"44. Según la Ley 38/2015, ¿a quién corresponde la elaboración, aprobación y publicación de la Declaración de la Red?", o:["Al Ministerio de Transportes y Movilidad Sostenible.","Al Administrador de Infraestructuras Ferroviarias.","Al Consejo de Ministros.","A la Agencia Estatal de Seguridad Ferroviaria."], c:1, j:"Competencia legal de los administradores generales de infraestructuras."},
+    {q:"45. Según el RD Legislativo 5/2015, art. 54, sobre principios de conducta, el empleado público:", o:["Podrá aceptar regalos, siempre que no consistan en dinero efectivo.","Deberá rechazar cualquier regalo, favor o servicio en condiciones ventajosas que vaya más allá de los usos habituales, sociales y de cortesía.","No necesitará observar las normas sobre seguridad y salud.","No podrá realizar actividades fuera de su jornada laboral."], c:1, j:"Prohibición estatutaria de aceptar prebendas o regalos fuera de la cortesía habitual."},
+    {q:"46. Señalar cuál de estos principios está previsto en la Ley 40/2015 en el ejercicio de la potestad sancionadora:", o:["Principio de legalidad.","Principio de Celeridad.","Principio de Retroactividad.","Principio de Inmediación Judicial."], c:0, j:"El principio de legalidad rige de forma tasada la potestad sancionadora."},
+    {q:"47. El Reglamento Delegado 2018/762 señala que se entenderá por \"Organismo de Certificación de la Seguridad\":", o:["El organismo responsable del análisis e investigación de los accidentes ferroviarios.","El organismo encargado de la emisión de informes de evaluación de los indicadores de accidentalidad.","El organismo responsable de la expedición de un certificado de seguridad único, ya sea la Agencia o una autoridad nacional de seguridad.","El organismo encargado de la formalización de los requisitos de seguridad en las empresas ferroviarias."], c:2, j:"Definición técnica del certificado de seguridad único."},
+    {q:"48. Según el Reglamento 402/2013 de la Comisión, la importancia de un cambio en el sistema ferroviario que repercuta en la seguridad se decidirá en función de:", o:["Consecuencias en caso de fallo, innovación empleada, complejidad, supervisión, reversibilidad y adicionalidad.","Exclusivamente de la novedad y riesgos que implique su entrada en funcionamiento.","Una decisión potestativa de la persona responsable de seguridad en la circulación.","Exclusivamente de la severidad del cambio."], c:0, j:"Criterios explícitos de evaluación de riesgos (Reglamento UE 402/2013)."},
+    {q:"49. El personal comprendido en el ámbito de la Ley 53/1984 para desempeñar una actividad privada, ¿qué autorización debe solicitar?", o:["No necesita autorización.","No necesita autorización si es por cuenta propia.","No necesita autorización si es una actividad profesional por cuenta ajena.","No necesita autorización para actividades particulares en ejercicio de un derecho reconocido."], c:3, j:"Excepciones legales para el ejercicio de derechos reconocidos particulares."},
+    {q:"50. En casos de urgente necesidad, ¿qué decisiones puede adoptar el Presidente según el Estatuto del ADIF?", o:["Remover al Consejo de Administración de la Entidad.","Adoptar decisiones que competen al Consejo de Administración, sometiéndolas a ratificación posterior.","Modificar el régimen jurídico de la Entidad.","Modificar el Estatuto de la Entidad."], c:1, j:"Prerrogativa ejecutiva del Presidente con posterior ratificación colegiada."},
+    {q:"51. Según la Ley 39/2015, ¿cuál de los siguientes trámites NO pone fin al procedimiento?", o:["La resolución.","El trámite de audiencia.","La declaración de caducidad.","El desistimiento."], c:1, j:"El trámite de audiencia es una actuación de instrucción interna, no de terminación."},
+    {q:"52. ¿Qué establece la Ley 9/2017 en términos de obligatoriedad de las modificaciones contractuales?", o:["Que las no previstas en el pliego no serán obligatorias salvo en casos de fuerza mayor.","Que las no previstas en el pliego no serán en ningún caso obligatorias para los contratistas.","Que cuando la modificación no resulte obligatoria para el contratista, solo será acordada por el órgano de contratación previa conformidad por escrito del mismo.","Que las previstas en el pliego serán obligatorias cuando impliquen una alteración que no exceda del 20% del precio inicial."], c:2, j:"Régimen de modificaciones no obligatorias en la LCSP."},
+    {q:"53. El Esquema Nacional de Seguridad establece que la auditoría de seguridad, con carácter extraordinario, deberá realizarse:", o:["Siempre que NO se produzcan modificaciones sustanciales en los sistemas de información.","Siempre que SÍ se produzcan modificaciones sustanciales en los sistemas de información.","Cada año.","Nunca se ha de realizar."], c:1, j:"Auditoría extraordinaria obligatoria ante cambios sustanciales en los sistemas."},
+    {q:"54. Acorde con la Declaración sobre la Red 2026 de Adif, las tarifas de los cánones ferroviarios se determinarán:", o:["Por los Administradores de Infraestructuras Ferroviarias, aprobando un Reglamento adoptado por su Consejo de Administración, publicado en el BOE e incluido en la Declaración sobre la Red.","Por la transformación de la naturaleza jurídica de los cánones (Ley 26/2022), que determina que serán establecidos por la CNMC.","Por la Directiva 2012/34/UE del Parlamento Europeo y del Consejo, de 21 de noviembre de 2012.","Son aprobados con carácter anual en la Ley de Presupuestos Generales del Estado."], c:0, j:"Procedimiento de aprobación interna de cánones publicados en BOE."}
+  ],
+  especifico_tecnico: [
+    {q:"1. ¿En qué fecha se realizó la Declaración Institucional de lucha Contra el fraude por el Presidente de Adif?", o:["28 de octubre de 2024.","28 de noviembre de 2024.","28 de octubre de 2023.","28 de noviembre de 2023."], c:0, j:"Declaración Institucional Antifraude firmada por la Presidencia de Adif."},
+    {q:"2. En relación con el Canal Ético de Adif, señale la respuesta CORRECTA:", o:["Las comunicaciones deberán llevarse a cabo mediante el formulario habilitado y podrán ser nominativas o anónimas.","Las comunicaciones deberán llevarse a cabo en la sede electrónica y deberán ser nominativas.","Las comunicaciones deberán llevarse a cabo mediante el formulario habilitado y deberán ser anónimas.","Las comunicaciones deberán llevarse a cabo en la sede electrónica y podrán ser nominativas."], c:0, j:"El Canal Ético admite comunicaciones nominativas o anónimas (Ley 2/2023)."},
+    {q:"3. Según el RD 2387/2004, ¿cuál de los siguientes NO es un derecho de los usuarios de transporte ferroviario de viajeros?", o:["A acceder a la publicación, con antelación, del horario de servicios y precios.","A recibir las mercancías y equipajes en el mismo estado en que las entregaron.","A respetar las medidas de protección civil y seguridad establecidas por los órganos competentes.","A ser indemnizados de los perjuicios causados por incumplimiento de la empresa ferroviaria."], c:2, j:"Respetar las medidas de seguridad es un deber del viajero, no un derecho."},
+    {q:"4. Según el RD 2387/2004, ¿cuál de los siguientes elementos NO se considera parte de la infraestructura de vía?", o:["Los terraplenes.","Las capas de asiento.","Los viaductos.","Las trincheras."], c:1, j:"Clasificación técnica de la plataforma y vía según el Reglamento del Sector Ferroviario."},
+    {q:"5. Según la Ley 21/2013, de evaluación ambiental, ¿cómo se denominan las medidas excepcionales que se aplican ante impactos residuales?", o:["Medidas residuales.","Medidas de vigilancia ambiental.","Medidas preventivas.","Medidas compensatorias."], c:3, j:"Medidas compensatorias destinadas a compensar la pérdida de valores ambientales."},
+    {q:"6. De conformidad con la Ley 19/2013, ¿es posible ampliar el plazo para resolver solicitudes de información pública?", o:["Sí, siempre que el sujeto obligado lo considere oportuno y lo motive debidamente.","No, nunca; el sujeto obligado está obligado a resolver en el plazo de un mes.","Puede ampliarse si el volumen y la complejidad de lo solicitado así lo hacen necesario.","Puede ampliarse si se justifica que el personal tiene una carga de trabajo superior a la habitual."], c:2, j:"Ampliación de plazo por volumen o complejidad en la Ley de Transparencia."},
+    {q:"7. Según el RD 2387/2004, ¿cuál de las siguientes NO se considera una instalación ferroviaria de electrificación?", o:["Línea aérea de contacto.","Las de telecomunicaciones fijas.","Las subestaciones.","Las líneas de acometida energética."], c:1, j:"Las telecomunicaciones fijas pertenecen a instalaciones de seguridad y señalización."},
+    {q:"8. Conforme al Reglamento del Sector Ferroviario, ¿qué información debe incluirse obligatoriamente en la Subsección de personal de conducción del Registro Especial Ferroviario?", o:["Exclusivamente nombre e identificación del titular, empresa a la que pertenece y tipo de habilitación.","Nombre y datos de identificación, título de circulación de vehículos tipo C y funciones en seguridad del transporte de mercancías peligrosas.","Nombre e identificación, así como licencias, habilitaciones, cursos, sanciones y horas de conducción.","Nombre e identificación del titular y el personal familiar a su cargo."], c:2, j:"Contenido obligatorio registral del personal de conducción."},
+    {q:"9. ¿Puede, según la Ley 19/2013, limitarse el acceso a la información pública?", o:["No; siempre debe concederse el acceso.","Sí, de conformidad con lo establecido en el art. 18 de la Ley.","Sí, de conformidad con lo establecido en el art. 14 de la Ley.","Sí, pero el Consejo de Transparencia y Buen Gobierno revisará de oficio la aplicación de los límites."], c:2, j:"Límites específicos al derecho de acceso (art. 14 de la Ley 19/2013)."},
+    {q:"10. Según el Reglamento del Sector Ferroviario, ¿qué necesitan los agentes de transporte, cargadores y operadores de transporte combinado para solicitar capacidad de infraestructura ferroviaria?", o:["Obtener una licencia de empresa de servicios alternativos.","Disponer de un certificado de seguridad específico.","Realizar una declaración de actividad y disponer de una habilitación específica.","Obtener una autorización específica del administrador de infraestructuras."], c:2, j:"Requisito exigido por la normativa a candidatos distintos de las empresas ferroviarias."},
+    {q:"11. Según la Ley 21/2013, ¿quién presentará ante el órgano sustantivo la solicitud de inicio de la evaluación de impacto ambiental simplificada?", o:["El autor.","El promotor.","El órgano ambiental.","Este trámite no está contemplado en la Ley."], c:1, j:"Legitimación del promotor para iniciar el procedimiento ambiental."},
+    {q:"12. Según la Ley 21/2013, para elaborar el documento de alcance del estudio de impacto ambiental, ¿quién consultará a las Administraciones públicas afectadas y personas interesadas?", o:["El autor.","El promotor.","El órgano sustantivo.","El órgano ambiental."], c:3, j:"Competencia del órgano ambiental en la fase de consultas previas."},
+    {q:"13. Según la Ley 21/2013, en la evaluación de impacto ambiental ordinaria, ¿quién realiza los trámites de información pública y consultas a AAPP afectadas y personas interesadas?", o:["El autor.","El promotor.","El órgano sustantivo.","El órgano ambiental."], c:2, j:"Funcionalidad atribuida al órgano sustantivo."},
+    {q:"14. Según la Ley 21/2013, ¿en qué procedimiento debe el promotor elaborar y presentar un estudio de impacto ambiental?", o:["Evaluación de impacto ambiental ordinaria.","Evaluación ambiental estratégica ordinaria.","Evaluación de impacto ambiental simplificada.","Evaluación ambiental estratégica simplificada."], c:0, j:"Documento troncal de la evaluación ordinaria."},
+    {q:"15. Según la Ley 21/2013, en la evaluación ambiental estratégica ordinaria, ¿cuál es el plazo del órgano ambiental desde la recepción del expediente completo para formular la declaración ambiental estratégica?", o:["2 meses.","3 meses.","4 meses.","5 meses."], c:2, j:"Plazo legal de 4 meses para la declaración ambiental estratégica ordinaria."},
+    {q:"16. Según la Política corporativa de lucha contra el fraude, la corrupción y el soborno, ¿quiénes están especialmente expuestos a este riesgo?", o:["La Alta Dirección, miembros del Ministerio de Transportes y el personal de Estructura de Dirección.","La Alta Dirección, Comité de Dirección, Estructura de Dirección, Estructura de Apoyo y Directores de contrato.","La Alta Dirección, Comité de Dirección, Estructura de Dirección y Estructura de Apoyo.","La Alta Dirección, Comité de Dirección, Estructura de Dirección y los Responsables de contrato."], c:3, j:"Puestos de especial exposición según la norma UNE-ISO 37001 y Adif."},
+    {q:"17. ¿Qué facultades se prevén en el Reglamento del Sector Ferroviario para el personal de inspección en el ejercicio de su función?", o:["Imponer sanciones directas y ejecutivas.","Revocar y dejar sin efecto la licencia de empresa ferroviaria.","Suspender los servicios e incautarse del material rodante que genere el incidente.","Adoptar, con carácter cautelar y por el menor tiempo posible, medidas que garanticen la adecuada prestación del servicio."], c:3, j:"Facultades cautelares y de intervención provisional para la inspección."},
+    {q:"18. Según la Ley 21/2013, ¿quién podrá recabar el informe de organismos científicos o académicos durante el análisis técnico del expediente en la evaluación de impacto ambiental ordinaria?", o:["El promotor.","El autor.","El órgano ambiental.","El órgano gestor del espacio Red Natura 2000."], c:2, j:"Prerrogativa técnica del órgano ambiental."}
+  ],
+  ingles_01: [
+    {q:"19. A: Have you found everything you were looking for?\nB: Yes, thanks. Just these bananas and some milk.\nA: That's €3.60, please.\nWhere are these people?", o:["At the bank.","At the greengrocer's.","At the supermarket.","At the library."], c:2, j:"Contexto de compra de fruta y leche en un establecimiento ('supermarket')."},
+    {q:"20. There isn't ______ sugar in my coffee.", o:["no","any","some","a"], c:1, j:"Oraciones negativas con incontables emplean 'any'."},
+    {q:"21. What does this sign mean?\n\"PUSH TO OPEN\"", o:["Pull the door.","Push the door.","Lock the door.","Close the door."], c:1, j:"Instrucción de abrir empujando."},
+    {q:"22. I need to book a hotel room for two ______.", o:["persons","people","humans","child"], c:1, j:"Plural irregular natural de 'person' es 'people'."},
+    {q:"23. Which is closest in meaning?\n\"Peter forgot his umbrella, so he got wet in the rain.\"", o:["Peter didn't get wet because he had no umbrella.","Peter remembered to take his umbrella.","Peter was wet because he didn't take his umbrella.","Peter got wet, and he bought an umbrella."], c:2, j:"Relación lógica causa-efecto."},
+    {q:"24. There ______ some apples ______ the table.", o:["is – in","are – on","am – at","be – next"], c:1, j:"Plural 'apples' requiere 'are' y preposición de superficie 'on'."},
+    {q:"25. I ______ my homework before dinner.", o:["finishes","finishing","finished","am finish"], c:2, j:"Acción pasada terminada ('finished')."},
+    {q:"26. If it rains, we ______ stay home.", o:["will","would","can","must"], c:0, j:"Primer condicional con futuro ('will')."},
+    {q:"27. If you have a toothache, you should see a ______.", o:["driver","pilot","builder","dentist"], c:3, j:"Especialista dental ('dentist')."},
+    {q:"28. The hotel was very ______. We had a view of the sea and fresh towels every day.", o:["noisy","cheap","comfortable","delicious"], c:2, j:"Comodidades y buen servicio describen un sitio 'comfortable'."},
+    {q:"29. They ______ my friends.", o:["is","be","are","am"], c:2, j:"Tercera persona plural del verbo to be ('are')."},
+    {q:"30. ______ you speak English?", o:["Are","Does","Do","Did"], c:2, j:"Interrogativa presente simple ('Do you...')."},
+    {q:"31. You see this in a café: NO SMOKING. What must you do?", o:["Smoke.","Not smoke.","Request permission to smoke.","Leave."], c:1, j:"Prohibición de fumar."},
+    {q:"32. Where are you likely to hear this?\n\"Would you like a window or aisle seat?\"", o:["At the bank.","At the dentist.","On a bus.","At the airport check-in."], c:3, j:"Selección de asiento en facturación aérea."},
+    {q:"33. We had a great time at the ______. There was music and dancing.", o:["class","market","concert","lesson"], c:2, j:"Música y baile se relacionan con un concierto ('concert')."},
+    {q:"34. She said she ______ the letter last week.", o:["sends","will send","has sent","sent"], c:3, j:"Marcador temporal pasado 'last week' exige pretérito simple ('sent')."},
+    {q:"35. You should take a ______ if you have a headache.", o:["tablet","towel","sandwich","map"], c:0, j:"Para el dolor de cabeza se toma un comprimido ('tablet')."},
+    {q:"36. What does this email mean?\n\"Hi Robert, Just a reminder that your English class has been moved to Thursday at 3:00 p.m. Let me know if that works for you. Thanks, Emma\"", o:["Robert's class was cancelled.","Robert's class is at the usual time.","Robert's class has been rescheduled.","Robert needs to move the class to Friday."], c:2, j:"Cambio de horario ('rescheduled')."}
+  ],
+  general_01: [
+    {q:"37. Según la Declaración sobre la Red 2026 de Adif, ¿cuáles son los distintos anchos de vía de la red ferroviaria gestionada por Adif?", o:["Ancho ibérico y ancho estándar, si bien algunas secciones cuentan con el denominado tercer carril.","Ancho ibérico, ancho estándar y ancho métrico, si bien algunas secciones cuentan con el denominado tercer carril.","Ancho estándar y ancho métrico, si bien algunas secciones cuentan con el denominado tercer carril.","Ancho de vía ancho, ancho estándar y ancho ibérico, si bien algunas secciones cuentan con el denominado tercer carril."], c:1, j:"Anchos ibérico, estándar y métrico con tramos de tercer carril."},
+    {q:"38. Según el capítulo II de la Declaración sobre la Red 2026 de Adif, ¿qué parámetros deben considerarse para determinar la carga máxima remolcable para cada locomotora?", o:["La rampa característica más desfavorable de la línea y la carga máxima del remolque, en función de la rampa característica resultante.","La rampa característica más desfavorable del recorrido del tren y la carga máxima del remolque, en función de la rampa característica resultante.","La carga máxima de la locomotora, atendiendo a las especificaciones del fabricante, y la rampa característica más desfavorable de la línea.","La rampa característica más desfavorable del recorrido del tren y la carga máxima de las locomotoras, en función de la rampa característica resultante."], c:3, j:"Criterios técnicos para el cálculo de cargas remolcables."},
+    {q:"39. Según el Capítulo I de la Declaración sobre la Red 2026 de Adif, ¿cuáles sąn los principales agentes del sector ferroviario en España?", o:["El Ministerio de Transportes y Movilidad Sostenible y sus órganos colegiados (CIAF, CCTMP, CNTT, FRC), la Comisión Nacional del Mercado de Valores, la AESF y los administradores Adif y Adif-Alta Velocidad.","El Ministerio de Transportes y Movilidad Sostenible y sus órganos colegiados (CIAF, CCTMP, CNTT, FRC), la CNMC, la AESF y los administradores Adif y Adif-Alta Velocidad.","El Ministerio de Transportes y sus órganos colegiados (CIAF, CCTMP, CNTT, FRC), la CNMC, la Dirección General de Carreteras y los administradores Adif y Adif-Alta Velocidad.","El Ministerio de Transportes y sus órganos colegiados (CIAF, CCTMP, CNTT, FRC), la Dirección General de Ferrocarriles, la AESF y los administradores Adif y Adif-Alta Velocidad."], c:1, j:"Estructura oficial de agentes del sector ferroviario."},
+    {q:"40. Según la Ley Orgánica 3/2007, de 22 de marzo, ¿cómo se denomina el órgano colegiado responsable de la coordinación de las políticas de igualdad entre mujeres y hombres de los departamentos ministeriales?", o:["Órgano Paritario de Igualdad entre mujeres y hombres.","Comisión Interministerial de Igualdad entre mujeres y hombres.","Órgano Colegiado de Igualdad entre mujeres y hombres.","Comisión Ejecutiva para la Promoción y el Desarrollo de la Igualdad entre mujeres y hombres."], c:1, j:"Denominación oficial de la Comisión Interministerial."},
+    {q:"41. Según la Ley 53/1984, en caso de compatibilidad de actividades públicas, ¿qué requisito es necesario para su autorización?", o:["Que la retribución de la segunda actividad que se solicita no sea superior a la primera.","Que el grupo de cotización en seguridad social de la segunda actividad sea el mismo.","Que la suma total no supere la retribución de un Director General según Presupuestos Generales.","Que el solicitante no tenga infracciones tributarias abiertas."], c:2, j:"Límite retributivo máximo en materia de incompatibilidades."},
+    {q:"42. Según el RD Legislativo 5/2015, art. 54 del EBEP, respecto al cumplimiento de órdenes, el empleado público deberá:", o:["Obedecer todas las instrucciones y órdenes profesionales recibidas, pues de lo contrario podrá ser sancionado.","Obedecer las instrucciones y órdenes profesionales de sus superiores, salvo que constituyan una infracción manifiesta del ordenamiento jurídico.","Obedecer aquellas instrucciones y órdenes profesionales recibidas, siempre que se las hayan hecho llegar por escrito.","Obedecer todas las instrucciones y órdenes profesionales recibidas, salvo que se encuentre de vacaciones."], c:1, j:"Límite de la obediencia debida ante infracciones manifiestas."},
+    {q:"43. Según su Estatuto, ¿por qué está integrado el patrimonio de ADIF?", o:["El conjunto de bienes, derechos y obligaciones de los que sea titular.","La infraestructura ferroviaria que forma parte de la Red Ferroviaria de Interés General.","La infraestructura y superestructura ferroviarias de alta velocidad y de red convencional.","La infraestructura y superestructura ferroviarias y las estaciones y dependencias adscritas al ferrocarril."], c:0, j:"Definición jurídica patrimonial general."},
+    {q:"44. Según el artículo 14.2 de la Ley 31/1995, ¿quién es responsable de garantizar la seguridad y salud de los trabajadores en todos los aspectos relacionados con el trabajo?", o:["Los servicios de prevención ajenos.","La Inspección de Trabajo y Seguridad Social.","El empresario.","El delegado de prevención."], c:2, j:"Principio de responsabilidad empresarial (LPRL)."},
+    {q:"45. ¿Cuáles son recursos económicos del ADIF conforme a su Estatuto?", o:["Los derivados del transporte de viajeros.","Los derivados del transporte de mercancías.","Las tasas por la venta de billetes.","Los cánones que perciba por la utilización de las infraestructuras ferroviarias."], c:3, j:"Los cánones por utilización de la infraestructura son el recurso típico."},
+    {q:"46. Señale la opción INCORRECTA: Según la LO 3/2007, las Administraciones educativas, para garantizar un igual derecho a la educación a través de la integración activa, desarrollarán:", o:["La atención especial en los currículos y en todas las etapas educativas al principio de igualdad entre mujeres y hombres.","La integración del estudio y aplicación del principio de igualdad en los cursos de formación del profesorado.","La eliminación y el rechazo de comportamientos y contenidos sexistas, con especial consideración en los libros de texto y materiales educativos.","La promoción de la presencia equilibrada de mujeres y hombres en los órganos de control y de gobierno de los centros docentes."], c:2, j:"Opción de exclusión literal conforme a plantillas oficiales."},
+    {q:"47. ¿Qué función le corresponde a los administradores generales de infraestructuras ferroviarias según la Ley 38/2015?", o:["La administración de todas las infraestructuras ferroviarias independientemente de su titularidad.","La elaboración, aprobación y publicación de la declaración sobre la red.","La construcción con fondos propios de las infraestructuras ferroviarias de las comunidades autónomas.","La prestación de servicios comerciales de transporte ferroviario en la Red de Interés General."], c:1, j:"Elaboración y publicación de la Declaración sobre la Red."},
+    {q:"48. Según el artículo 16.2 de la Ley 31/1995, ¿qué debe hacer el empresario respecto a la evaluación de riesgos laborales?", o:["Delegar la evaluación en los trabajadores.","Evaluar solo los riesgos nuevos que aparezcan.","Realizar una evaluación inicial de los riesgos, actualizarla cuando cambien las condiciones de trabajo y revisarla si se han producido daños a la salud.","Evaluar los riesgos una vez al año."], c:2, j:"Obligación de planificar y actualizar permanentemente la prevención."},
+    {q:"49. Según la Ley 38/2015, ¿en qué zonas se pueden realizar actividades industriales relacionadas con el ferrocarril?", o:["En las zonas de reserva ferroviaria.","En las zonas de dominio ferroviario privado.","En las zonas de especial protección industrial.","En las zonas de servicio ferroviario."], c:3, j:"Definición legal de las zonas de servicio ferroviario."},
+    {q:"50. Según el Estatuto del ADIF, ¿a quién corresponde el control e inspección de las zonas de protección de la infraestructura ferroviaria?", o:["Al Administrador de Infraestructuras Ferroviarias.","Al Ministerio de Fomento.","Al Ministerio del Interior.","A los operadores ferroviarios."], c:0, j:"Funciones de policía y control atribuidas al administrador."},
+    {q:"51. Según la Ley 38/2015, ¿qué medidas se pueden adoptar en caso de ejecución de obras no autorizadas en zona de protección de la infraestructura ferroviaria?", o:["Imponer multas al responsable por el cuádruple del valor de la obra ilegal ejecutada.","Paralizar la actividad ilegal hasta que se obtenga autorización municipal.","Ordenar la demolición de las obras o instalaciones prohibidas.","Permitir la continuación de las obras de manera cautelar."], c:2, j:"Potestad de restablecimiento de la legalidad mediante demolición."},
+    {q:"52. ¿Qué efecto tiene la aprobación de un estudio informativo sobre una infraestructura ferroviaria según la Ley 38/2015?", o:["Implica la declaración de utilidad pública y necesidad de ocupación temporal de los terrenos a efectos de toma de datos y prospecciones para la redacción de los proyectos.","Exime de la evaluación ambiental del proyecto.","Implica la autorización inmediata para iniciar las obras.","Permite la adjudicación directa de capacidad de infraestructura."], c:0, j:"Efectos ordinarios de la aprobación de un estudio informativo."},
+    {q:"53. Según el Capítulo II de la Declaración sobre la Red 2026 de Adif, ¿cuál de los siguientes sistemas de protección del tren cumple con la compatibilidad técnica de interoperabilidad europea?", o:["LZB","ASFA","ERTMS","Bloqueo Automático"], c:2, j:"ERTMS es el sistema de mando, control y señalización estándar europeo."},
+    {q:"54. Según la LO 3/2007, ¿quiénes estarán obligados al cumplimiento del principio de igualdad de trato entre mujeres y hombres en sus actividades y transacciones?", o:["Todas las personas físicas o jurídicas que, en el sector público o privado, suministren bienes o servicios disponibles para el público, ofrecidos fuera del ámbito de la vida privada y familiar.","Las personas físicas que, en el sector público o privado, suministren bienes o servicios disponibles para la Administración Pública, ofrecidos fuera del ámbito de la vida privada y familiar.","Todas las personas físicas o jurídicas que, en el sector público o privado, suministren bienes o servicios disponibles para la Administración Pública, ofrecidos fuera del ámbito de la vida privada y familiar.","Todas las personas físicas o jurídicas que, en el sector público o privado, suministren bienes o servicios disponibles para el público, ofrecidos dentro del ámbito de la vida privada y familiar."], c:0, j:"Ámbito subjetivo general de aplicación de la igualdad en bienes y servicios."},
+    {q:"37. Según se indica en la Declaración sobre la Red 2025, ¿cuál es la asociación mundial que promueve el transporte ferroviario a nivel global?", o:["EIM","UIC","PRIME","CNMC"], c:1, j:"Unión Internacional de Ferrocarriles (UIC)."},
+    {q:"38. Según la Declaración sobre la Red 2025, ¿a quién corresponde garantizar la competencia efectiva en los mercados productivos?", o:["CNMV","CNE","CNMC","UIC"], c:2, j:"Comisión Nacional de los Mercados y la Competencia (CNMC)."},
+    {q:"39. Según la Declaración sobre la Red 2025, ¿a qué organismo corresponde el otorgamiento y revocación de licencias ferroviarias?", o:["CNMC","AESF","ADIF","ADIF ALTA VELOCIDAD"], c:1, j:"Agencia Estatal de Seguridad Ferroviaria (AESF)."},
+    {q:"40. Según la Declaración sobre la Red 2025, ¿cuál es la organización que agrupa a los administradores de infraestructuras europeos?", o:["UIC","RNE","EIM","PRIME"], c:1, j:"Rail Net Europe (RNE)."},
+    {q:"41. Según su Estatuto, ¿ADIF puede recibir ingresos de convenios con otras Comunidades Autónomas o entidades privadas?", o:["No, ADIF NO puede recibir este tipo de ingresos.","Sí, constituyen un recurso económico más para la Entidad.","Exclusivamente si se trata de entidades de derecho público.","Exclusivamente si se trata de entidades de carácter privado."], c:1, j:"Previsión estatutaria de financiación mediante convenios."},
+    {q:"42. Conforme a la Ley 38/2015, ¿qué funciones NO corresponden a los administradores ferroviarios?", o:["La prestación, en su caso, de los servicios básicos, complementarios y auxiliares al servicio de transporte ferroviario.","El control, vigilancia e inspección de la infraestructura ferroviaria que administre, de sus zonas de protección y de la circulación ferroviaria que sobre ella se produzca.","La elaboración y ejecución de estudios o proyectos en materia de movilidad sostenible o de transporte ferroviario.","La prestación de servicios de transporte comercial de viajeros o mercancías sobre las infraestructuras ferroviarias de su titularidad."], c:3, j:"El transporte comercial corresponde a las empresas ferroviarias, no a los administradores."},
+    {q:"43. Conforme al RD 53/1984 de incompatibilidades; dicho Real Decreto no será de aplicación:", o:["Al personal militar al servicio de la Administración del Estado y de sus Organismos Públicos.","Al personal al servicio de las Corporaciones Locales.","Al personal que preste servicios en Empresas en la que la participación de capital de las Administraciones sea superior al 25%.","Al personal al servicio del Banco de España."], c:2, j:"Exclusión expresa por porcentaje de participación pública empresarial."},
+    {q:"44. ¿A quién le corresponde autorizar las operaciones de endeudamiento que pueda convenir ADIF?", o:["Al Ministro de Fomento.","Al Consejo de Administración de ADIF.","Al Presidente de ADIF.","Al Director General Económico Financiero."], c:1, j:"Competencia orgánica colegiada del Consejo de Administración."},
+    {q:"45. ¿A quién le corresponde la aprobación y construcción de una terminal de mercancías de la RFIG?", o:["Al Ministerio de Transportes Movilidad y Agenda Urbana.","A la Secretaría de Estado de Infraestructuras Ferroviarias.","A los administradores de infraestructuras ferroviarias.","A las empresas ferroviarias."], c:2, j:"Competencia técnica asignada a los administradores de infraestructuras."},
+    {q:"46. Señale la opción INCORRECTA: Según la LO 3/2007, las Administraciones educativas desarrollarán:", o:["La atención especial en los currículos y en todas las etapas educativas al principio de igualdad entre mujeres y hombres.","La integración del estudio y aplicación del principio de igualdad en los cursos de formación del profesorado.","La eliminación y el rechazo de contenidos sexistas con especial consideración en los libros de texto y materiales educativos.","El establecimiento de medidas educativas destinadas al reconocimiento y enseñanza del papel de las mujeres en la Historia."], c:2, j:"Opción de exclusión oficial de examen."},
+    {q:"47. ¿Según su Estatuto qué servicios de transporte ferroviarios puede prestar el ADIF?", o:["Cualquier servicio ferroviario en plena libertad y competencia de mercado.","Exclusivamente aquellos que sean inherentes a su propia actividad.","Cualquier servicio con autorización del Consejo de Ministros y por tiempo limitado.","Exclusivamente aquellos que puedan ser prestados por un operador privado."], c:1, j:"Limitación estricta a servicios inherentes a su propia actividad."},
+    {q:"48. Según la LO 3/2007, con el fin de avanzar hacia un reparto equitativo de tiempos, las corporaciones locales podrán establecer:", o:["Programas de organización del tiempo de la ciudad.","Planes Estatales de organización del tiempo de la ciudad.","Planes Municipales de organización del tiempo de la ciudad.","Planes Autonómicos de organización del tiempo de la ciudad."], c:2, j:"Planes Municipales de organización del tiempo urbano."},
+    {q:"49. ¿Cómo se delimita exteriormente la zona de protección de la línea ferroviaria en la Ley 38/2015?", o:["Por dos líneas paralelas a 70 metros de la arista exterior más próxima al eje de la plataforma.","Por dos líneas paralelas a 50 metros de la arista exterior más próxima al eje de la plataforma.","Por dos líneas paralelas a 70 metros de las aristas exteriores de explanación.","Por dos líneas paralelas a 50 metros de las aristas exteriores de explanación."], c:2, j:"Delimitación a 70 metros de las aristas exteriores de explanación."},
+    {q:"50. Según la Ley 31/1995 de prevención de riesgos laborales, ¿qué es un riesgo laboral?", o:["Las enfermedades, patologías o lesiones sufridas con motivo u ocasión del trabajo.","Solo los accidentes graves.","Solo las enfermedades profesionales.","La posibilidad de que un trabajador sufra un determinado daño derivado del trabajo."], c:3, j:"Definición legal de riesgo laboral como probabilidad de un daño (art. 4 LPRL)."},
+    {q:"51. Según la Ley 31/1995, ¿qué deben hacer los empresarios en caso de riesgo grave e inminente?", o:["Informar lo antes posible a los trabajadores afectados de la existencia de dicho riesgo y de las medidas adoptadas.","Continuar con la actividad laboral hasta que las autoridades competentes tomen o indiquen las medidas oportunas.","Continuar con la actividad laboral hasta que los representantes acuerden la paralización.","Despedir a los trabajadores afectados que interrumpan su actividad."], c:0, j:"Obligación empresarial inmediata de información y protección."},
+    {q:"52. ¿Qué contenido debe tener la declaración sobre la red según la Ley 38/2015?", o:["La descripción de la infraestructura de uso exclusivo de los administradores.","Las características de la infraestructura puesta a disposición de las empresas ferroviarias y la información sobre capacidad y condiciones técnicas de acceso.","El estudio de la planificación de nuevas infraestructuras y su financiación.","Únicamente las características de la infraestructura puesta a disposición."], c:1, j:"Contenido normativo obligatorio de la Declaración sobre la Red."},
+    {q:"53. Según la LO 3/2007, la presencia equilibrada se define cuando en el conjunto de cada sexo...", o:["No superen el 60% ni sean menos del 40%.","Representen exactamente el 50%.","Superen el 70% como máximo.","No alcancen el 30%."], c:3, j:"Fórmula legal cuantitativa de presencia equilibrada (40%-60%)."},
+    {q:"54. Según la Declaración sobre la Red, ¿cuántos milímetros tiene la separación entre carriles en la red de ancho estándar?", o:["1.668 mm.","1.535 mm.","1.568 mm.","1.435 mm."], c:3, j:"Ancho internacional o estándar europeo (1.435 mm)."}
+  ],
+  especifico_factor: [
+    {q:"1. Según el Reglamento de Circulación Ferroviaria, ¿qué tipo de luces componen la señalización de cabeza de los trenes?", o:["Alumbrado de gran intensidad (un foco blanco o amarillo) y luces de posición (tres luces en triángulo equilátero).","Alumbrado de gran intensidad (dos focos blancos) y luces de posición (tres luces en triángulo isósceles).","Alumbrado de larga intensidad (dos focos blancos o amarillos) y luces de posición (tres luces en triángulo isósceles).","Alumbrado de gran intensidad (un foco blanco o amarillo) y luces de posición (tres luces en triángulo isósceles)."], c:1, j:"Prescripción del RCF sobre alumbrado de cabeza."},
+    {q:"2. ¿En qué título de la Orden FOM 2872/2010 se establece la regulación relativa al personal de conducción?", o:["Título I.","Título II.","Título III.","Título VI."], c:3, j:"Estructura de la Orden FOM/2872/2010."},
+    {q:"3. Según el RCF, ¿qué significa la señal FI14 indicadora para la tracción eléctrica de aspecto K (25000 V)?", o:["La velocidad máxima es de 250 km/h.","Que la tensión de la línea de contacto pasa de 3.000 Vc.c a 25.000 Vc.a.","La distancia al próximo cambiador de tensión es de 25000 metros.","A la distancia de 25000 m se encuentra la señal de principio de zona neutra."], c:1, j:"Señalización de transición de sistemas de alimentación eléctrica en catenaria."},
+    {q:"4. Según el RCF, ¿qué realizará el Maquinista si no percibe con claridad la señal de marche el tren?", o:["Debe esperar a que la señal se repita apeándose de la cabina de conducción.","Continuará con marcha a la vista hasta la siguiente estación.","Reclamará su presentación dando la señal de atención especial.","Se detendrá y esperará una orden por escrito del Responsable de Circulación."], c:2, j:"Protocolo ante señales dudosas según el RCF."},
+    {q:"5. Según el RCF, ¿qué sistema agrupa al ETCS y al GSM-R?", o:["ATP/ATO","European Train Control System","ERTMS","DMI"], c:2, j:"Sistema europeo de gestión del tráfico ferroviario (ERTMS = ETCS + GSM-R)."},
+    {q:"6. Según el RCF, ¿qué ordena la señal de rebase autorizado FF8B (color superior rojo, inferior blanco) en el caso de un tren?", o:["Continuar el avance con marcha a la vista, si nada se opone, hasta el punto de estacionamiento, la señal siguiente, o el anterior vehículo estacionado en la vía a la que se accede.","Parar ante la señal y seguidamente reanudar el avance con marcha de maniobras, si nada se opone, hasta el punto de estacionamiento, la señal siguiente, o el anterior vehículo estacionado.","Iniciar o continuar el movimiento, pero no autoriza a circular hasta la estación siguiente. La marcha se mantendrá hasta rebasar las agujas de salida.","Esperar la autorización de rebase por radiotelefonía antes de avanzar."], c:1, j:"Instrucción reglamentaria de parada y reanudación con marcha de maniobras ante FF8B."},
+    {q:"7. Según el RCF, ¿qué indica el fondo azul en las señales tipo FI10 de los postes kilométricos y hectométricos?", o:["Que el punto está en una vía de apartado.","Que el punto está en una vía general.","Que es una señal de Alta Velocidad.","Que el punto está en un ramal."], c:1, j:"Significado convencional en vías generales."},
+    {q:"8. Según el RCF, ¿cuándo NO es preciso realizar las pruebas de frenado en un tren?", o:["Cuando se cambie la locomotora de cabeza.","Cuando se segreguen uno o varios vehículos de cola de tren.","Cuando se unan dos ramas, sin modificar sus composiciones.","Cuando se agreguen vehículos a la composición."], c:1, j:"Excepciones reglamentarias en pruebas de freno."},
+    {q:"9. Mientras se realizan las prácticas de la Licencia de Conducción, según la Orden FOM 2872/2010, ¿cómo se actuará ante una situación degradada o de riesgo?", o:["El RC del PM decidirá, ponderando las circunstancias, si el alumno puede seguir haciéndose cargo de la conducción.","El Maquinista titular decidirá si el alumno sigue con la conducción del vehículo o se hace cargo él de la conducción.","El alumno seguirá siendo responsable de la circulación bajo la supervisión del Maquinista titular.","El maquinista titular se hará cargo de la conducción de manera inmediata hasta que remitan las causas que justificaron dicha situación."], c:3, j:"Asunción inmediata del mando por el maquinista tutor ante escenarios de riesgo."},
+    {q:"10. Según el RCF, ¿a qué distancia del eje del apeadero se sitúa el cartelón FI15 de aspecto C (con la letra 'A')?", o:["A 50 metros.","A 200 metros.","A 100 metros.","A 300 metros."], c:2, j:"Distancia reglamentaria de preanuncio de parada en apeaderos."},
+    {q:"11. Según el RCF, ¿qué se entiende por Bloqueo?", o:["Un sistema para impedir el acceso a la línea mediante el cierre de estaciones, con señales de entrada a efectos de gestión y regulación del tráfico ferroviario.","Un sistema o proceso cuyo objetivo es garantizar que los trenes que circulen por la misma vía y en el mismo sentido lo hagan separados a una distancia que impida su alcance, y que no circulen dos trenes en sentido contrario por la misma vía.","El proceso de detener un tren en caso de emergencia cuando se observa que un tren de sentido contrario circula por la misma vía.","Sistema que permite establecer itinerarios seguros para la circulación de trenes en estaciones, relacionando aparatos de vía, semibarreras de PN y las órdenes que transmiten las señales."], c:1, j:"Definición doctrinal exacta del sistema de bloqueo."},
+    {q:"12. Según el RCF, si la detención por una señal de parada a mano ha tenido lugar en plena vía y no hay nadie al lado, ¿qué debe hacer el maquinista?", o:["Esperar hasta que la persona que colocó la señal le indique que puede continuar a la siguiente estación abierta.","Avanzar con marcha a la vista, sin exceder de 40 km/h, hasta encontrar a la persona que colocó la señal o llegar a una estación abierta.","Retroceder a la última estación, con marcha a la vista, sin exceder de 40 km/h.","Esperar hasta que el Responsable de Circulación le autorice el rebase con marcha a la vista, sin exceder de 40 km/h."], c:1, j:"Modo de marcha restrictivo y seguro ante parada a mano en plena vía."},
+    {q:"13. ¿Qué significa la falta del cartelón FI15AO ('ASFA CONV') o FI15AP ('ASFA AV') de la Resolución 8/2022 de la AESF?", o:["Exime al maquinista de realizar el cambio de modo en el equipo ASFA embarcado.","No exime de realizar el proceso de cambio de modo en el equipo ASFA embarcado.","Indica una avería en el sistema ASFA.","Permite al maquinista elegir el modo ASFA."], c:1, j:"Disposición técnica de la ETC sobre señalización adicional ASFA."},
+    {q:"14. Según la Resolución 8/2022 de la AESF, ¿a qué personal es de aplicación subjetiva la ETC sobre cartelones adicionales al RCF?", o:["Únicamente a los administradores de infraestructura (AAII).","A los administradores de infraestructura (AAII) y las empresas ferroviarias (EEFF) que gestionan y operan en la RFIG.","Solo a los maquinistas.","Exclusivamente al personal de las Empresas Ferroviarias (EEFF)."], c:1, j:"Ámbito subjetivo dual de aplicación a administradores y operadoras."},
+    {q:"15. ¿Por qué se considera necesaria la publicación de la Resolución 8/2022 de la AESF (ETC) para cartelones adicionales?", o:["Para reemplazar el Reglamento de Circulación Ferroviaria existente.","Para derogar todas las señales ferroviarias anteriores e incluir las nuevas.","Para dar respuesta inmediata a una necesidad operacional inaplazable que no puede cubrirse por los plazos habituales de tramitación de modificaciones del RCF.","Para definir las características técnicas y prescripciones de circulación aplicables a las señales ferroviarias incluidas en el ámbito de esta ETC."], c:2, j:"Justificación jurídica y operativa de adopción de resoluciones urgentes por la AESF."},
+    {q:"16. Según el RCF, ¿qué es una Habilitación?", o:["La resolución del Administrador de Infraestructuras por la que se autoriza una determinada actividad.","El documento que faculta al titular para ejercer unas funciones cuya capacidad ha sido acreditada mediante la superación de una formación reglada.","El proceso mediante el cual una persona recibe reconocimiento formal de su competencia y calidad por parte de un organismo autorizado.","El documento oficial que acredita que el titular posee los conocimientos, habilidades y competencias necesarias para un campo profesional."], c:1, j:"Definición conceptual reglamentaria de habilitación profesional."},
+    {q:"17. En la Orden FOM 2872/2010, dentro del programa de formación para el certificado de conducción de categoría B, de las 380 horas de formación práctica, ¿cuántas horas mínimo serán prácticas de conducción efectiva?", o:["56 horas.","68 horas.","160 horas.","250 horas."], c:2, j:"Requisito curricular de horas mínimas de conducción efectiva en certificado B."},
+    {q:"18. ¿En qué periodo se presenta la señal de Silbar FI15Abis (Resolución 8/2022 de la AESF), con banda diagonal luminosa encendida?", o:["Cuando es necesario silbar.","Durante los periodos en los que no exista la causa por la que se instaló la señal FI15A.","Cuando hay baja visibilidad.","Solo durante el día."], c:1, j:"Significado y activación de la señal condicional de anulación temporal de silbar."}
+  ]
+};
+
+const SECTION_LABELS = {
+  psicometrico:"Psicométrico",
+  ingles_02:"Inglés (PNI25/02)",
+  general_02:"Conocimiento General (PNI25/02)",
+  especifico_tecnico:"Específico · Ing. Informática",
+  ingles_01:"Inglés (PNI25/01)",
+  general_01:"Conocimiento General (PNI25/01)",
+  especifico_factor:"Específico · Factor de Circulación de Entrada"
+};
+
+let quizQuestions = [];
+let currentIndex = 0;
+let answers = [];
+let playerName = "";
+let flaggedQuestions = new Set();
+let timerInterval = null;
+let timeLeft = 0;
+let isWrongMode = false;
+let currentMode = "practice"; // 'practice' o 'exam'
+
+window.addEventListener('DOMContentLoaded', () => {
+  updateWrongCount();
+  updateStatsUI();
+});
+
+function getWrongStorage() {
+  try { return JSON.parse(localStorage.getItem('adif_wrong_q') || '[]'); } catch(e) { return []; }
+}
+function saveWrongStorage(arr) {
+  try { localStorage.setItem('adif_wrong_q', JSON.stringify(arr)); } catch(e) {}
+}
+function getHistoryStorage() {
+  try { return JSON.parse(localStorage.getItem('adif_history') || '[]'); } catch(e) { return []; }
+}
+function saveHistoryStorage(arr) {
+  try { localStorage.setItem('adif_history', JSON.stringify(arr)); } catch(e) {}
+}
+
+function updateWrongCount() {
+  const wrongs = getWrongStorage();
+  const countEl = document.getElementById('wrongCount');
+  const btnEl = document.getElementById('btnWrongMode');
+  if(countEl && btnEl) {
+    countEl.textContent = wrongs.length;
+    if(wrongs.length > 0) btnEl.classList.remove('hidden');
+    else btnEl.classList.add('hidden');
+  }
+}
+
+function updateStatsUI() {
+  const history = getHistoryStorage();
+  const summaryEl = document.getElementById('statsSummary');
+  const listEl = document.getElementById('statsHistoryList');
+  
+  if(history.length === 0) {
+    summaryEl.textContent = "Aún no hay simulacros completados.";
+    listEl.innerHTML = "";
+    return;
+  }
+
+  let totalCorrect = 0;
+  let totalQuestions = 0;
+  history.forEach(h => {
+    totalCorrect += h.correct;
+    totalQuestions += h.total;
+  });
+  let globalAvg = Math.round((totalCorrect / totalQuestions) * 100);
+
+  summaryEl.innerHTML = `Simulacros realizados: <strong>${history.length}</strong> | Acierto global histórico: <strong>${globalAvg}%</strong>`;
+  
+  listEl.innerHTML = "";
+  // Mostrar los últimos 5
+  history.slice(-5).reverse().forEach(h => {
+    let row = document.createElement('div');
+    row.className = 'history-row';
+    let aptoText = h.pct >= 70 ? '🟢 Apto' : '🔴 No Apto';
+    row.innerHTML = `<span>${h.date} (${h.mode === 'exam' ? 'Examen' : 'Práctica'})</span><span><strong>${h.correct}/${h.total} (${h.pct}%)</strong> - ${aptoText}</span>`;
+    listEl.appendChild(row);
+  });
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  document.getElementById('themeBtn').textContent = next === 'dark' ? '☀ Tema' : '🌙 Tema';
+}
+
+function onTrackChange(){
+  const track = document.querySelector('input[name="track"]:checked').value;
+  const lblIngles = document.getElementById('lblIngles');
+  const lblGeneral = document.getElementById('lblGeneral');
+  const chkEspTecnico = document.getElementById('chkEspTecnico');
+  const chkEspFactor = document.getElementById('chkEspFactor');
+  const rowTecnico = chkEspTecnico.closest('.checkrow');
+  const rowFactor = chkEspFactor.closest('.checkrow');
+
+  if(track==='informatica'){
+    lblIngles.textContent = 'Inglés';
+    lblGeneral.textContent = 'Conocimiento General';
+    rowTecnico.classList.remove('hidden'); chkEspTecnico.checked = true;
+    rowFactor.classList.add('hidden'); chkEspFactor.checked = false;
+  } else if(track==='operativo'){
+    lblIngles.textContent = 'Inglés';
+    lblGeneral.textContent = 'Conocimiento General';
+    rowTecnico.classList.add('hidden'); chkEspTecnico.checked = false;
+    rowFactor.classList.remove('hidden'); chkEspFactor.checked = true;
+  } else {
+    lblIngles.textContent = 'Inglés (ambas convocatorias)';
+    lblGeneral.textContent = 'Conocimiento General (ambas convocatorias)';
+    rowTecnico.classList.remove('hidden'); chkEspTecnico.checked = true;
+    rowFactor.classList.remove('hidden'); chkEspFactor.checked = true;
+  }
+}
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function startQuiz(){
+  isWrongMode = false;
+  playerName = document.getElementById('playerName').value.trim() || "Opositor/a";
+  currentMode = document.querySelector('input[name="modeType"]:checked').value;
+  
+  const track = document.querySelector('input[name="track"]:checked').value;
+  const usePsico = document.getElementById('chkPsico').checked;
+  const useIngles = document.getElementById('chkIngles').checked;
+  const useGeneral = document.getElementById('chkGeneral').checked;
+  const useTecnico = document.getElementById('chkEspTecnico').checked;
+  const useFactor = document.getElementById('chkEspFactor').checked;
+  const mode = document.getElementById('shuffleMode').value;
+
+  quizQuestions = [];
+  if(usePsico) BANK.psicometrico.forEach(x=>quizQuestions.push({...x, section:'psicometrico'}));
+
+  if(track==='informatica'){
+    if(useIngles) BANK.ingles_02.forEach(x=>quizQuestions.push({...x, section:'ingles_02'}));
+    if(useGeneral) BANK.general_02.forEach(x=>quizQuestions.push({...x, section:'general_02'}));
+    if(useTecnico) BANK.especifico_tecnico.forEach(x=>quizQuestions.push({...x, section:'especifico_tecnico'}));
+  } else if(track==='operativo'){
+    if(useIngles) BANK.ingles_01.forEach(x=>quizQuestions.push({...x, section:'ingles_01'}));
+    if(useGeneral) BANK.general_01.forEach(x=>quizQuestions.push({...x, section:'general_01'}));
+    if(useFactor) BANK.especifico_factor.forEach(x=>quizQuestions.push({...x, section:'especifico_factor'}));
+  } else {
+    if(useIngles){ BANK.ingles_02.forEach(x=>quizQuestions.push({...x, section:'ingles_02'})); BANK.ingles_01.forEach(x=>quizQuestions.push({...x, section:'ingles_01'})); }
+    if(useGeneral){ BANK.general_02.forEach(x=>quizQuestions.push({...x, section:'general_02'})); BANK.general_01.forEach(x=>quizQuestions.push({...x, section:'general_01'})); }
+    if(useTecnico) BANK.especifico_tecnico.forEach(x=>quizQuestions.push({...x, section:'especifico_tecnico'}));
+    if(useFactor) BANK.especifico_factor.forEach(x=>quizQuestions.push({...x, section:'especifico_factor'}));
+  }
+
+  if(quizQuestions.length===0){
+    alert("Selecciona al menos un bloque de preguntas.");
+    return;
+  }
+
+  if(mode==='random') shuffle(quizQuestions);
+  initQuizEngine(true);
+}
+
+function startWrongQuiz() {
+  isWrongMode = true;
+  currentMode = "practice"; // El repaso de fallos siempre es en modo práctica
+  playerName = document.getElementById('playerName').value.trim() || "Opositor/a";
+  const wrongs = getWrongStorage();
+  if(wrongs.length === 0) {
+    alert("No hay fallos guardados actualmente.");
+    return;
+  }
+  quizQuestions = [...wrongs];
+  shuffle(quizQuestions);
+  initQuizEngine(false);
+}
+
+function initQuizEngine(useTimerConfig) {
+  currentIndex = 0;
+  answers = [];
+  flaggedQuestions.clear();
+  
+  document.getElementById('setupScreen').classList.add('hidden');
+  document.getElementById('quizScreen').classList.remove('hidden');
+  document.getElementById('homeBtnTop').classList.remove('hidden');
+
+  if(useTimerConfig) {
+    timeLeft = 45 * 60; // 45 minutos estándar de examen
+    document.getElementById('timerDisplay').classList.remove('hidden');
+    startTimer();
+  } else {
+    document.getElementById('timerDisplay').classList.add('hidden');
+  }
+
+  renderQuestion();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    let m = Math.floor(timeLeft / 60);
+    let s = timeLeft % 60;
+    document.getElementById('timerDisplay').textContent = `⏱ ${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    if(timeLeft <= 0) {
+      clearInterval(timerInterval);
+      alert("¡Se ha agotado el tiempo del examen oficial!");
+      showResults();
+    }
+  }, 1000);
+}
+
+function renderQuestion(){
+  const item = quizQuestions[currentIndex];
+  let flagBadge = flaggedQuestions.has(currentIndex) ? '<span class="flagged-badge">Dudosa</span>' : '';
+  document.getElementById('progressText').innerHTML = `Pregunta ${currentIndex+1} de ${quizQuestions.length} ${flagBadge}`;
+  document.getElementById('sectionTag').textContent = SECTION_LABELS[item.section] || "Repaso Personalizado";
+  document.getElementById('qtext').textContent = item.q;
+  
+  const flagBtn = document.getElementById('flagBtn');
+  if(flaggedQuestions.has(currentIndex)) {
+    flagBtn.textContent = "★ Quitar marca de dudosa";
+    flagBtn.style.background = "var(--flag)";
+  } else {
+    flagBtn.textContent = "⭐ Marcar como dudosa";
+    flagBtn.style.background = "";
+  }
+
+  const container = document.getElementById('optionsContainer');
+  container.innerHTML = '';
+  const letters = ['a','b','c','d'];
+  item.o.forEach((opt, idx)=>{
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = `${letters[idx]}) ${opt}`;
+    btn.onclick = ()=>selectOption(idx);
+    container.appendChild(btn);
+  });
+  document.getElementById('feedback').classList.add('hidden');
+  
+  // En modo examen real, el botón siguiente avanza sin mostrar feedback previo
+  const nextBtn = document.getElementById('nextBtn');
+  if(currentMode === 'exam') {
+    nextBtn.textContent = (currentIndex === quizQuestions.length - 1) ? "Finalizar Examen" : "Siguiente pregunta";
+    nextBtn.classList.remove('hidden');
+  } else {
+    nextBtn.classList.add('hidden');
+  }
+}
+
+function toggleFlag() {
+  if(flaggedQuestions.has(currentIndex)) {
+    flaggedQuestions.delete(currentIndex);
+  } else {
+    flaggedQuestions.add(currentIndex);
+  }
+  renderQuestion();
+}
+
+function selectOption(idx){
+  const item = quizQuestions[currentIndex];
+  const opts = document.querySelectorAll('#optionsContainer .option');
+
+  if(currentMode === 'exam') {
+    // En modo examen solo seleccionamos visualmente la opción elegida
+    opts.forEach(o=>o.classList.remove('selected'));
+    opts[idx].classList.add('selected');
+    
+    // Guardamos la respuesta provisionalmente
+    // Buscamos si ya respondió esta pregunta antes en este examen
+    let existing = answers.find(a => a.q === item.q);
+    if(existing) {
+      existing.chosen = idx;
+    } else {
+      answers.push({section:item.section, q:item.q, o:item.o, c:item.c, chosen:idx, j:item.j});
+    }
+    return;
+  }
+
+  // MODO PRÁCTICA / ESTUDIO (Feedback inmediato)
+  opts.forEach(o=>o.style.pointerEvents='none');
+  opts[idx].classList.add('selected');
+  const isCorrect = idx === item.c;
+  if(isCorrect){
+    opts[idx].classList.add('correct');
+  } else {
+    opts[idx].classList.add('incorrect');
+    opts[item.c].classList.add('correct');
+    
+    let wrongs = getWrongStorage();
+    if(!wrongs.some(w => w.q === item.q)) {
+      wrongs.push(item);
+      saveWrongStorage(wrongs);
+    }
+  }
+
+  if(isCorrect && isWrongMode) {
+    let wrongs = getWrongStorage();
+    wrongs = wrongs.filter(w => w.q !== item.q);
+    saveWrongStorage(wrongs);
+  }
+
+  const fb = document.getElementById('feedback');
+  fb.classList.remove('hidden');
+  fb.className = 'feedback ' + (isCorrect ? 'ok' : 'bad');
+  fb.innerHTML = `<div class="feedback-title">${isCorrect ? '✔ ¡Respuesta Correcta!' : '✘ Respuesta Incorrecta'}</div><div><strong>Justificación:</strong> ${item.j}</div>`;
+
+  answers.push({section:item.section, q:item.q, o:item.o, c:item.c, chosen:idx, j:item.j});
+  document.getElementById('nextBtn').classList.remove('hidden');
+}
+
+function nextQuestion(){
+  if(currentMode === 'exam') {
+    // Verificar si no seleccionó nada
+    let item = quizQuestions[currentIndex];
+    let answered = answers.find(a => a.q === item.q);
+    if(!answered) {
+      // Registrar respuesta vacía (-1)
+      answers.push({section:item.section, q:item.q, o:item.o, c:item.c, chosen:-1, j:item.j});
+    }
+  }
+
+  currentIndex++;
+  if(currentIndex >= quizQuestions.length){
+    showResults();
+  } else {
+    renderQuestion();
+  }
+}
+
+function confirmRestart(){
+  if(answers.length > 0 || currentIndex > 0){
+    if(!confirm("¿Seguro que quieres volver al inicio? Perderás el progreso actual.")) return;
+  }
+  restart();
+}
+
+function showResults(){
+  clearInterval(timerInterval);
+  document.getElementById('timerDisplay').classList.add('hidden');
+  document.getElementById('quizScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.remove('hidden');
+
+  // Si estamos en modo examen, procesar fallos globales al terminar
+  if(currentMode === 'exam') {
+    let wrongs = getWrongStorage();
+    answers.forEach(a => {
+      if(a.chosen !== a.c) {
+        let itemBank = {q: a.q, o: a.o, c: a.c, j: a.j, section: a.section};
+        if(!wrongs.some(w => w.q === a.q)) wrongs.push(itemBank);
+      } else if(isWrongMode) {
+        wrongs = wrongs.filter(w => w.q !== a.q);
+      }
+    });
+    saveWrongStorage(wrongs);
+  }
+
+  const total = quizQuestions.length;
+  // Asegurar que todas tengan respuesta registrada
+  let validAnswers = [];
+  quizQuestions.forEach(q => {
+    let ans = answers.find(a => a.q === q.q);
+    if(ans) {
+      validAnswers.push(ans);
+    } else {
+      validAnswers.push({section: q.section, q: q.q, o: q.o, c: q.c, chosen: -1, j: q.j});
+    }
+  });
+  answers = validAnswers;
+
+  const correct = answers.filter(a=>a.chosen===a.c).length;
+  const pct = total > 0 ? Math.round((correct/total)*100) : 0;
+  const isApto = pct >= 70; // Nota de corte orientativa del 70%
+
+  // Guardar en historial local de estadísticas
+  const history = getHistoryStorage();
+  const dateStr = new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  history.push({ date: dateStr, mode: currentMode, correct, total, pct });
+  saveHistoryStorage(history);
+
+  document.getElementById('resultName').textContent = playerName;
+  
+  const verdictContainer = document.getElementById('verdictContainer');
+  if(currentMode === 'exam') {
+    verdictContainer.innerHTML = `<div class="verdict-box ${isApto ? 'verdict-apto' : 'verdict-noapto'}">${isApto ? '🟢 APTO (Supera la nota de corte)' : '🔴 NO APTO (No alcanza el 70%)'}</div>`;
+  } else {
+    verdictContainer.innerHTML = '';
+  }
+
+  document.getElementById('scoreBig').textContent = `${correct} / ${total}`;
+  document.getElementById('scoreSub').textContent = `${pct}% de aciertos`;
+
+  const bySection = {};
+  answers.forEach(a=>{
+    const secKey = a.section || "general";
+    if(!bySection[secKey]) bySection[secKey] = {c:0,t:0};
+    bySection[secKey].t++;
+    if(a.chosen===a.c) bySection[secKey].c++;
+  });
+  
+  const bd = document.getElementById('breakdown');
+  bd.innerHTML = '<strong style="display:block; margin-bottom: 8px;">Desglose por áreas:</strong>';
+  Object.keys(bySection).forEach(sec=>{
+    const row = document.createElement('div');
+    row.className = 'breakdown-row';
+    row.innerHTML = `<span>${SECTION_LABELS[sec] || sec}</span><strong>${bySection[sec].c} / ${bySection[sec].t}</strong>`;
+    bd.appendChild(row);
+  });
+  
+  updateWrongCount();
+  updateStatsUI();
+}
+
+function showReview(){
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('reviewScreen').classList.remove('hidden');
+  const list = document.getElementById('reviewList');
+  list.innerHTML = '';
+  const letters = ['a','b','c','d'];
+  answers.forEach((a,i)=>{
+    const div = document.createElement('div');
+    div.className = 'review-item';
+    const ok = a.chosen === a.c;
+    const chosenText = a.chosen >= 0 ? `${letters[a.chosen]}) ${a.o[a.chosen]}` : "Sin responder";
+    div.innerHTML = `
+      <div class="review-q">${i+1}. ${a.q}</div>
+      <div class="review-your ${ok?'ok':'bad'}">Tu respuesta: ${chosenText} ${ok?'✔':'✘'}</div>
+      ${!ok ? `<div class="review-correct">Respuesta correcta: ${letters[a.c]}) ${a.o[a.c]}</div>` : ''}
+      <div class="review-justification"><strong>Explicación:</strong> ${a.j}</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function backToResults(){
+  document.getElementById('reviewScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.remove('hidden');
+}
+
+function restart(){
+  clearInterval(timerInterval);
+  document.getElementById('quizScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('reviewScreen').classList.add('hidden');
+  document.getElementById('setupScreen').classList.remove('hidden');
+  document.getElementById('homeBtnTop').classList.add('hidden');
+  updateWrongCount();
+  updateStatsUI();
+}
+
+onTrackChange();
+</script>
+</body>
+</html>
